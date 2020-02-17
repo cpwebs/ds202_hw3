@@ -1,0 +1,124 @@
+---
+title: "hw3"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Tips at Restaurants
+
+In this homework we will use the `tips` data set. This data set is part of the `reshape2` package. You can load the data set by executing the command:
+```{r}
+data(tips, package="reshape2")
+```
+If you do not have available the package `reshape2`, issue `install.packages('reshape2')` to install it. The information contained in the data is collected by one waiter, who recorded over the course of a season information about each tip he received working in one restaurant. See `?tips` for a description of all of the variables. 
+
+**Submission instructions**: Create a folder named `ds202_hw3`, and name the RMarkDown file `hw3.Rmd`  which should include your solutions under this folder. For submission, create a GitHub repository named `ds202_hw3` under your GitHub account, and push both `hw3.Rmd` and the knitted `hw3.html` before the deadline. I will assume you use the same GitHub username as for your HW2 submission. The latest version of your homework appearing on GitHub before the deadline is graded. *It is crucial to follow the exact folder structure and file names*, so that your homework can be reproduced and graded by an automated script. This homework is **due on Feb 19** before class.
+
+1.  How many parties did the waiter serve? Store the number in `numParty` and print. 
+
+```{r}
+numParty = length(tips$size)
+numParty
+```
+
+2. What are the types of variables in the data frame `tips`? Include the code and also explain verbally.
+
+The types of each variable are shown below. Both the total bill and tip are represented by a double type to account for decimal point values. The rest of the variables are represented as int types. Other than size, the rest of the integer variables are integers because they represent some value in a factor with levels. Meaning that an integer value represents a certain value in that factor. The variable size is still an integer type but simply signifies a straightforward number.
+
+```{r}
+typeof(tips$total_bill)
+typeof(tips$tip)
+typeof(tips$sex)
+typeof(tips$smoker)
+typeof(tips$day)
+typeof(tips$time)
+typeof(tips$size)
+```
+
+3. Create a vector named `day` containing the day of visits in `tips`. The factor levels should be ordered from Thursday to Sunday. Print the variable.
+
+```{r}
+day <- factor(tips$day, levels=c('Thur', 'Fri', 'Sat', 'Sun'))
+day
+```
+
+4. Create a data frame named `female5` containing the meal paid by a female payer in a party with size greater than or euqal to 5. Print the data frame.
+
+```{r}
+female5 <- data.frame(tips)
+female5<-female5[!(female5$sex=="Male" | female5$size<5),]
+female5
+```
+
+5. How does the tipping amount (`tip`) depend on the overall bill (`total_bill`)? Use the `ggplot2` package to make a chart. Describe the relationship in words.  
+
+Below the chart shows the depedency the tip has on the total bill. The relationship can be described as the tip affecting the total bill since the tip is part of the total bill, therefore, higher tips would result in higher total bills generally. This can be said since lower tips in the chart generally are associated with lower total bills. Notice the word 'generally' because this isn't always the case. The chart below has some trends, however, all of them aren't clear. The relationship seems to also be in a postive correlation but it wouldn't be classified as a strong correlation.
+
+```{r}
+library("ggplot2")
+
+p <- ggplot(tips, aes(total_bill,tip)) + geom_bar(stat = "identity")+ labs(x = "Total Bill", y = "Tip", title = "Tip Dependence on Total Bill")
+p
+```
+
+6. Describe at least two types of anomalies in the previous plot. What do they mean?
+
+The first anomality that is noticable is that when the total bill is around 40 dollars, the tips are equal to or less than when the total bill is around 20 dollars. This means that tippers aren't as generous as those who spend less. Meaning that the percentage of your bill is lower since you're spending less of what the other customer's might consider as acceptable.
+
+The second anomality in this chart is the highest tip happened to be the same at two very different price points. It happened when the total bill was roughly 30 dollars and around 50 dollars.
+
+The third anomality is data spacing between the total bill. There is a definite observation that shows lower total bill totals are more common than higher bill totals. It's out of the ordinary because the gaps are inconsistent between each bar especially since you'd think that it was space out more consistently towards the higher half of the total bill.
+
+
+7. Introduce a variable `tiprate` into the data set which stands for the rate of tips. What is the average rate for tips? Explain verbally. 
+
+The tiprate variable can be found using the tips column / the total bill prior to a tip being added on the bill. Finding rates are simply diving one value to another. The average rate for tips is 20% because the mean value of the variable tiprate is 0.2021235. This tip rate is for all variables in the dataset meaning outliers, both genders, smokers and nonsmokers, etc. were all included.
+
+```{r}
+
+tiprate <- tips$tip / (tips$total_bill - tips$tip)
+mean(tiprate)
+```
+
+8. Make a boxplot of the tip rate by time. The x-axis should be ordered by lunch and then dinner. Use `ggplot2` to make a chart. Verbally explain the chart.
+
+The boxes of both times of lunch and dinner are similar but differ when it comes to median values. For lunch, the median is the lower half of the box while for dinner the median is the middle of the box. The box values for both lunch and dinner are around a .25 tip rate. As you can tell, the outliers are more likely to happen during dinner time than lunch time. This is what the black dots stand for when they're outside of the box itself. 
+
+
+```{r}
+library("ggplot2")
+tiprate <- tips$tip / (tips$total_bill - tips$tip)
+p <- ggplot(tips, aes(x=time, y=tiprate)) + 
+  geom_boxplot() + scale_x_discrete(limits=c("Lunch", "Dinner")) + labs(x = "Time", y = "Tip rate", title = "Tip rate vs time")
+p
+```
+
+
+9. How does smoking behavior and gender of the person who pays impact the relationship between tip and total bill? Find a visualization that incorporates all four variables. Interpret the result.
+
+This visualization is very interesting because you can clearly see the outliers and the consistent trends. When the customers aren't smokers, the tips and total bills are more predictable and positively correlated. This somewhat differs from when the customers are smokers because there are more outliers and the results aren't as consistent to make any trends. In other words, there are more spikes in the data. This could also be because there aren't as many smokers as non-smokers so data can be skewed differently.
+
+```{r}
+library("ggplot2")
+p <- ggplot(data = tips, 
+       mapping = aes(x = total_bill, y = tip, color = sex)) +
+  geom_line() +
+  facet_grid(rows = vars(sex), cols =  vars(smoker)) + labs(x = "Tip", y = "Total Bill", title = "Tip vs total bill vs smoking behavior vs gender of payer",colour = "Gender Color")
+p
+
+```
+
+10. Use ggplot2 to find a graphical summary of the relationship between day of the week and gender of the person paying the bill. What can you say about this relationship?
+
+The relationship seems to show that men outpay women when it comes to paying the bill on Saturdays and Sundays, however, on Thursdays and Fridays, they're more evenly split between paying. On Saturdays and Sundays, it seems like men are 2x as likely to pay if not more. This may be because more date nights are on the weekend which would affect the prices and decision of who's paying.
+
+```{r}
+library("ggplot2")
+p <- ggplot(tips, aes(day,sex)) +
+  geom_jitter(aes(colour = tips$sex)) + labs(x = "Day of the Week", y = "Gender Paying", title = "Paying the Bill:  Gender vs Weekday",colour = "Gender Color")
+p
+```
+
+Note: your submission is supposed to be fully reproducible, i.e. the TA and I will 'knit' your submission in RStudio. 
