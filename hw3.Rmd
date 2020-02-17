@@ -1,5 +1,6 @@
 ---
 title: "hw3"
+author: "Cole Weber; cpwebs"
 output: html_document
 ---
 ```{r setup, include=FALSE}
